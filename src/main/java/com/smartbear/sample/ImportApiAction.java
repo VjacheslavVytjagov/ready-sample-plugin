@@ -22,8 +22,14 @@ public class ImportApiAction extends AbstractSoapUIAction<WsdlProject>{
         urlString = UISupport.getDialogs().prompt("Input URL", "Input URL to Swagger definition", urlString);
         try {
             SwaggerImporter importer = SwaggerUtils.createSwaggerImporter(urlString, wsdlProject);
+            ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
+            Thread.currentThread().setContextClassLoader(SwaggerUtils.class.getClassLoader());
             SoapUI.log("Importing Swagger from [" + urlString + "]");
-            RestService rs = importer.importApiDeclaration(urlString);
+            try {
+                importer.importSwagger(urlString);
+            } finally {
+                Thread.currentThread().setContextClassLoader(contextClassLoader);
+            }
         } catch (Throwable e) {
             SoapUI.logError(e);
             UISupport.showErrorMessage(e.getMessage());
